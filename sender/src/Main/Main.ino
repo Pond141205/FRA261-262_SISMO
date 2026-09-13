@@ -7,11 +7,12 @@
 #include <Wire.h>
 #include <AS5600.h>
 #include "PanTiltScanner.h" 
+#include "secrets.h"
 
 // --- CONFIGURATION ---
-const char* ssid = "FIBO_Academy";
-const char* password = "fiboacademy2568";
-const char* serverUrl = "https://unconserving-madelyn-glottogonic.ngrok-free.dev/upload_chunk";
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
+const char* serverUrl = SERVER_URL;
 #define DEVICE_ID "S001_01"
 
 // --- PINS ---

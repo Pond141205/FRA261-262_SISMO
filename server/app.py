@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # ------------------ Flask App & SQLite Setup ------------------
 basedir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
-app.secret_key = "your_secret_key_here"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-only-change-me")
 
 # สร้างโฟลเดอร์ Database ถ้ายังไม่มี
 if not os.path.exists(os.path.join(basedir, 'Database')):

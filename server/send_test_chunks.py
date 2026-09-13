@@ -1,8 +1,9 @@
+import os
 import requests
 import time
 
 # ---------- CONFIG ----------
-API_URL = "https://unconserving-madelyn-glottogonic.ngrok-free.dev/upload_chunk"
+API_URL = os.environ.get("UPLOAD_API_URL", "http://127.0.0.1:5000/upload_chunk")
 DEVICE_ID = "TEST_DEVICE"
 BATCH_ID = "TESTBATCH001"
 TOTAL_CHUNKS = 3

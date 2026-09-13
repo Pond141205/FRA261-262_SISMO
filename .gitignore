@@ -6,3 +6,11 @@ node_modules/
 .DS_Store
 *.log
 *.sqlite3
+# Local secrets / environment
+secrets.h
+**/secrets.h
+**/.env
+.env.*
+**/.env.*
+!.env.example
+!**/.env.example

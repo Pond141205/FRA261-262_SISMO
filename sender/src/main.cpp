@@ -4,11 +4,12 @@
 #include <SD.h>
 #include <FS.h>
 #include <SPI.h>
+#include "secrets.h"
 
 // --- Configuration ---
-const char* ssid = "Theeranon_2G";
-const char* password = "14122005$";
-const char* serverUrl = "https://unconserving-madelyn-glottogonic.ngrok-free.dev/upload_chunk"; 
+const char* ssid = WIFI_SSID;
+const char* password = WIFI_PASSWORD;
+const char* serverUrl = SERVER_URL;
 
 #define DEVICE_ID "S001_01"
 const int SD_CS_PIN = 5;
@@ -92,7 +93,7 @@ void timeInit() {
 
   logInfo("Time synced.");
   String timeStr = asctime(&timeinfo);
-  timeStr.trim(); 
+  timeStr.trim();
   logInfo("Current time: " + timeStr);
 }
 
@@ -118,9 +119,9 @@ bool uploadFileInBatches(const char* filename, const char* batch_id) {
     file.close();
     return false;
   }
-  
+
   int total_chunks = (fileSize + CHUNK_SIZE - 1) / CHUNK_SIZE;
-  
+
   char logBuffer[128];
 
   sprintf(logBuffer, "Starting new batch for %s (Batch: %s)", filename, batch_id);
@@ -137,7 +138,7 @@ bool uploadFileInBatches(const char* filename, const char* batch_id) {
 
   bool allChunksSent = true;
   for (int chunk_id = 1; chunk_id <= total_chunks; chunk_id++) {
-      
+
     // Calculate the exact size for this chunk
     size_t startPos = (chunk_id - 1) * CHUNK_SIZE;
     size_t bytesToSend = (startPos + CHUNK_SIZE > fileSize) ? (fileSize - startPos) : CHUNK_SIZE;
@@ -148,7 +149,7 @@ bool uploadFileInBatches(const char* filename, const char* batch_id) {
 
     // Pass the buffer and its size to the send function
     bool sent = sendChunk(chunk_id, total_chunks, dataBuffer, bytesToSend, batch_id);
-    
+
     if (!sent) {
         sprintf(logBuffer, "[Chunk %d] Failed after %d retries. Aborting batch.", chunk_id, maxRetries);
         logError(logBuffer);
@@ -158,7 +159,7 @@ bool uploadFileInBatches(const char* filename, const char* batch_id) {
     sprintf(logBuffer, "[Chunk %d/%d] Sent successfully.", chunk_id, total_chunks);
     logInfo(logBuffer);
   }
-  
+
   free(dataBuffer);
   file.close();
   return allChunksSent;
@@ -182,8 +183,8 @@ bool sendChunk(int chunk_id, int total_chunks, uint8_t* dataBuffer, size_t bytes
     http.setTimeout(20000); // 20-second timeout
 
     // Set Content-Type to plain text.
-    http.addHeader("Content-Type", "text/plain"); 
-    
+    http.addHeader("Content-Type", "text/plain");
+
     // Send headers your server needs to identify the chunk
     http.addHeader("X-Device-ID", DEVICE_ID);
     http.addHeader("X-Batch-ID", batch_id);
@@ -192,11 +193,11 @@ bool sendChunk(int chunk_id, int total_chunks, uint8_t* dataBuffer, size_t bytes
 
     // Send the POST request with the raw buffer
     int httpCode = http.POST(dataBuffer, bytesToSend);
-    
+
     if (httpCode > 0) {
       String response = http.getString();
-      http.end(); 
-      
+      http.end();
+
       if (httpCode == 200) { // 200 OK
         return true; // Success
       } else {
@@ -212,8 +213,8 @@ bool sendChunk(int chunk_id, int total_chunks, uint8_t* dataBuffer, size_t bytes
     attempt++;
     delay(delayBetweenRetries);
   }
-  
-  return false; 
+
+  return false;
 }
 
 void writeToLog(const char* level, String message) {
@@ -244,13 +245,13 @@ void writeToLog(const char* level, String message) {
         Serial.println("Failed to open log file for appending");
         return;
     }
-    
+
     if (!file.println(logEntry)) {
         Serial.println("Failed to write to log file");
     }
-    
+
     // Close immediately to save the data
-    file.close(); 
+    file.close();
 }
 
 void logInfo(String message) {
@@ -272,17 +273,17 @@ void loop_test() { // testing loop
 
   if (!getLocalTime(&timeinfo)) {
     logError("Failed to get local time.");
-    delay(1000); 
+    delay(1000);
     return;
   }
 
-  
+
   char batch_id[32];
-  sprintf(batch_id, "%s_%d%02d%02d_%02d", 
+  sprintf(batch_id, "%s_%d%02d%02d_%02d",
           DEVICE_ID,
-          (timeinfo.tm_year + 1900), 
-          (timeinfo.tm_mon + 1), 
-          timeinfo.tm_mday, 
+          (timeinfo.tm_year + 1900),
+          (timeinfo.tm_mon + 1),
+          timeinfo.tm_mday,
           timeinfo.tm_hour);
   sprintf(logBuffer, "Generated Batch ID: %s", batch_id);
   logInfo(logBuffer);
@@ -290,11 +291,11 @@ void loop_test() { // testing loop
 
     // Run the scan
     // void lidar fn scan
-    
+
   // Upload the file
   logInfo("Scan complete. Starting file upload...");
   bool batchSuccess = uploadFileInBatches("/scan_data.xyz", batch_id);
-  
+
   if (batchSuccess) {
     logSuccess("Batch completed successfully.");
   } else {
@@ -308,7 +309,7 @@ void loop_test() { // testing loop
 // --- Main Setup & Loop ---
 void setup() {
   Serial.begin(115200);
-  
+
   if (!initSDCard()) {
     Serial.println("SD Card failed. Halting.");
     while(1); // Stop
@@ -316,7 +317,7 @@ void setup() {
 
   logInfo("--- SYSTEM STARTUP ---");
   logSuccess("SD Card initialized successfully.");
-  
+
   connectWiFi();
   timeInit();
 
@@ -330,7 +331,7 @@ void loop() {
   // if (!getLocalTime(&timeinfo)) {
   //   Serial.println("Failed to get local time.");
   //   logToSD("ERROR: Failed to get local time.");
-  //   delay(1000); 
+  //   delay(1000);
   //   return;
   // }
 
@@ -341,20 +342,20 @@ void loop() {
   // bool atTopOfTheHour = (current_minute == 0);
 
 
-  
+
   // if (inScanWindow && atTopOfTheHour && (current_hour != last_scan_hour)) {
-    
+
   //   char logBuffer[128];
   //   sprintf(logBuffer, "Time is %02d:%02d. Starting scheduled scan.", current_hour, current_minute);
   //   logToSD(logBuffer);
 
   //   // Generate a reliable Batch ID *before* scanning.
     // char batch_id[32];
-    // sprintf(batch_id, "%d%02d%02d-%02d0000", 
+    // sprintf(batch_id, "%d%02d%02d-%02d0000",
     //         DEVICE_ID,
-    //         (timeinfo.tm_year + 1900), 
-    //         (timeinfo.tm_mon + 1), 
-    //         timeinfo.tm_mday, 
+    //         (timeinfo.tm_year + 1900),
+    //         (timeinfo.tm_mon + 1),
+    //         timeinfo.tm_mday,
     //         current_hour);
     // sprintf(logBuffer, "Generated Batch ID: %s", batch_id);
     // logToSD(logBuffer);
@@ -362,14 +363,14 @@ void loop() {
   //   // ---
   //   // STEP 1: RUN THE SCAN AND CREATE THE FILE
   //   // ---
-    
-    
+
+
   //   // ---
   //   // STEP 2: UPLOAD THE FILE
   //   // ---
   //   logToSD("Scan complete. Starting file upload...");
   //   bool batchSuccess = uploadFileInBatches("/scan_data.xyz", batch_id);
-    
+
   //   if (batchSuccess) {
   //     Serial.println("Batch completed successfully.");
   //     logToSD("Batch completed successfully.");
