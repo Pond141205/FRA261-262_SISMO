@@ -1,2 +1,3 @@
-# SISMO (Silo Stock Monitoring System) - *Pending Patent*
+# SISMO (Silo Stock Monitoring System) 
+
 
